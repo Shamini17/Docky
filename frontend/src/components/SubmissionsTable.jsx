@@ -11,7 +11,7 @@ export default function SubmissionsTable({ submissions, filters, onDelete }) {
     <div className="overflow-x-auto w-full mt-6">
       <table className="min-w-full text-sm text-left">
         <thead>
-          <tr className="bg-indigo-100 text-indigo-800">
+          <tr className="bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200">
             <th className="py-2 px-4">User Name</th>
             <th className="py-2 px-4">File Name</th>
             <th className="py-2 px-4">Type</th>
