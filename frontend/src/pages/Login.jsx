@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 function Login({ role }) {
   console.log('Login component rendered with role:', role);
@@ -9,6 +10,7 @@ function Login({ role }) {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -22,9 +24,8 @@ function Login({ role }) {
     try {
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login/${role}`, form);
       if (res.data && res.data.user) {
-        localStorage.setItem('token', res.data.token || '');
+        login(res.data.token || '', res.data.user);
         localStorage.setItem('role', role);
-        localStorage.setItem('user', JSON.stringify(res.data.user));
         console.log('Login response user:', res.data.user);
         if (role === 'admin') {
           navigate('/admin');
