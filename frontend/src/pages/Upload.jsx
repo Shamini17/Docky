@@ -22,7 +22,7 @@ function Upload() {
     formData.append('description', description);
     formData.append('deadline', deadline);
     try {
-      await axios.post('/api/documents/upload', formData, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/documents/upload`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',

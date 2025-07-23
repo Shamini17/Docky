@@ -20,10 +20,10 @@ function Signup({ role }) {
     setError('');
     setMessage('');
     try {
-      const signupRes = await axios.post(`/api/auth/signup/${role}`, form);
+      const signupRes = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/signup/${role}`, form);
       console.log('Signup response:', signupRes.data);
       // Only attempt login if signup succeeded
-      const loginRes = await axios.post(`/api/auth/login/${role}`, { email: form.email, password: form.password });
+      const loginRes = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login/${role}`, { email: form.email, password: form.password });
       console.log('Login response:', loginRes.data);
       localStorage.setItem('token', loginRes.data.token);
       localStorage.setItem('role', role);

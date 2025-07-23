@@ -20,7 +20,7 @@ function Login({ role }) {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.post(`/api/auth/login/${role}`, form);
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login/${role}`, form);
       if (res.data && res.data.user) {
         localStorage.setItem('token', res.data.token || '');
         localStorage.setItem('role', role);

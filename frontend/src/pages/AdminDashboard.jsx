@@ -37,7 +37,7 @@ export default function AdminDashboard() {
 
   const fetchSubmissions = async () => {
     try {
-      const res = await axios.get('/api/uploads');
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/uploads`);
       setSubmissions(res.data);
     } catch (err) {
       setSubmissions([]);
@@ -46,7 +46,7 @@ export default function AdminDashboard() {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get('/api/users');
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`);
       setUsers(res.data);
     } catch (err) {
       setUsers([]);
@@ -61,7 +61,7 @@ export default function AdminDashboard() {
     if (!window.confirm('Are you sure you want to delete this submission?')) return;
     setLoading(true);
     try {
-      await axios.delete(`/api/uploads/${submission.id}`);
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/uploads/${submission.id}`);
       setToast({ message: 'Submission deleted.', type: 'success' });
       fetchSubmissions();
     } catch (err) {

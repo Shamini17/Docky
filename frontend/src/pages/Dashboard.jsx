@@ -48,7 +48,7 @@ export default function Dashboard() {
 
   const fetchUploads = async () => {
     try {
-      const res = await axios.get('/api/user/uploads', {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/user/uploads`, {
         params: { email: user.email },
       });
       setUploads(res.data);
@@ -72,7 +72,7 @@ export default function Dashboard() {
       formData.append('email', user.email);
       formData.append('docType', docType);
       formData.append('deadline', deadline);
-      await axios.post('/api/user/upload', formData, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/user/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setToast({ message: 'Upload successful!', type: 'success' });
@@ -92,7 +92,7 @@ export default function Dashboard() {
     if (!window.confirm('Are you sure you want to delete this file?')) return;
     setLoading(true);
     try {
-      await axios.delete(`/api/user/uploads/${upload.fileName}`, { params: { email: user.email } });
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/user/uploads/${upload.fileName}`, { params: { email: user.email } });
       setToast({ message: 'File deleted.', type: 'success' });
       fetchUploads();
     } catch (err) {
