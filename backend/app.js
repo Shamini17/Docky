@@ -110,6 +110,29 @@ app.post('/api/admin/reset-password', async (req, res) => {
   );
 });
 
+// TEMPORARY: Ensure admin user exists and has correct password
+app.post('/api/admin/ensure', async (req, res) => {
+  const bcrypt = require('bcryptjs');
+  const email = 'nuvai@gmail.com';
+  const password = 'Nuvai@123';
+  const name = 'Admin';
+  const role = 'admin';
+  const hash = await bcrypt.hash(password, 10);
+  db.get('SELECT * FROM users WHERE email = ? AND role = ?', [email, role], (err, user) => {
+    if (user) {
+      db.run('UPDATE users SET password = ? WHERE email = ? AND role = ?', [hash, email, role], function (err2) {
+        if (err2) return res.status(500).json({ message: 'Failed to update admin password.' });
+        res.json({ message: 'Admin password updated.' });
+      });
+    } else {
+      db.run('INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)', [name, email, hash, role], function (err3) {
+        if (err3) return res.status(500).json({ message: 'Failed to create admin user.' });
+        res.json({ message: 'Admin user created.' });
+      });
+    }
+  });
+});
+
 // --- SQLite: Create uploads table if not exists ---
 db.run(`
   CREATE TABLE IF NOT EXISTS uploads (
