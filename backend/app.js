@@ -244,4 +244,16 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+});
+
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+// Catch-all handler: for any request that doesn't match an API route, send back React's index.html
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
+  } else {
+    res.status(404).json({ message: 'API route not found' });
+  }
 }); 
