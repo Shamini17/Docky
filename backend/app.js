@@ -249,9 +249,7 @@ app.listen(PORT, () => {
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
-// Catch-all: send index.html for any non-API GET request that doesn't match a static file
-app.get('*', (req, res) => {
-  if (req.method === 'GET' && !req.path.startsWith('/api')) {
-    res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
-  }
+// SPA Fallback: Only for GET requests not starting with /api or /uploads
+app.get(/^\/(?!api|uploads).*/, (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
 }); 
