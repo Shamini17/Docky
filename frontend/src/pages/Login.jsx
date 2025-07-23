@@ -27,10 +27,10 @@ function Login({ role }) {
         localStorage.setItem('user', JSON.stringify(res.data.user));
         console.log('Login response user:', res.data.user);
         if (role === 'admin') {
-          window.location.href = '/admin';
+          navigate('/admin');
         } else {
           console.log('Redirecting to /dashboard after login');
-          window.location.href = '/dashboard';
+          navigate('/dashboard');
         }
       } else {
         setError('Login failed. No user data returned.');
