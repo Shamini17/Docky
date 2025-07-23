@@ -95,6 +95,21 @@ app.post('/api/auth/login/:role', (req, res) => {
   );
 });
 
+// TEMPORARY: Reset admin password endpoint
+app.post('/api/admin/reset-password', async (req, res) => {
+  const bcrypt = require('bcryptjs');
+  const newPassword = 'Nuvai@123';
+  const hash = await bcrypt.hash(newPassword, 10);
+  db.run(
+    "UPDATE users SET password = ? WHERE email = 'nuvai@gmail.com' AND role = 'admin'",
+    [hash],
+    function (err) {
+      if (err) return res.status(500).json({ message: 'Failed to reset admin password.' });
+      res.json({ message: 'Admin password reset to Nuvai@123.' });
+    }
+  );
+});
+
 // --- SQLite: Create uploads table if not exists ---
 db.run(`
   CREATE TABLE IF NOT EXISTS uploads (
