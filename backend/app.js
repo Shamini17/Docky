@@ -279,6 +279,14 @@ app.get('/api/uploads', (req, res) => {
   );
 });
 
+// TEMPORARY: List all users for debugging
+app.get('/api/debug/users', (req, res) => {
+  db.all('SELECT id, name, email, role FROM users', [], (err, rows) => {
+    if (err) return res.status(500).json({ message: 'Failed to fetch users.' });
+    res.json(rows);
+  });
+});
+
 // app.use('/api/auth', authRoutes); // Deprecated, removed
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // app.use('/api/documents', documentRoutes);
