@@ -5,6 +5,7 @@ const db = require('./db'); // SQLite connection
 const multer = require('multer');
 const path = require('path');
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
 
 // Multer config for uploads (must be before routes)
 const upload = multer({
@@ -101,6 +102,7 @@ db.run(`
     user_email TEXT,
     fileName TEXT,
     filePath TEXT,
+    fileType TEXT,
     uploadedAt TEXT
   )
 `);
@@ -112,10 +114,11 @@ app.post('/api/user/upload', upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
   const fileName = req.file.originalname;
   const filePath = req.file.filename;
+  const fileType = req.file.mimetype;
   const uploadedAt = new Date().toISOString();
   db.run(
-    'INSERT INTO uploads (user_email, fileName, filePath, uploadedAt) VALUES (?, ?, ?, ?)',
-    [userEmail, fileName, filePath, uploadedAt],
+    'INSERT INTO uploads (user_email, fileName, filePath, fileType, uploadedAt) VALUES (?, ?, ?, ?, ?)',
+    [userEmail, fileName, filePath, fileType, uploadedAt],
     function (err) {
       if (err) return res.status(500).json({ message: 'Failed to save upload.' });
       res.json({ message: 'Upload successful.' });
@@ -143,6 +146,61 @@ app.get('/api/user/uploads', (req, res) => {
   );
 });
 
+// Admin: Delete an upload by id
+app.delete('/api/uploads/:id', (req, res) => {
+  const uploadId = req.params.id;
+  db.get('SELECT filePath FROM uploads WHERE id = ?', [uploadId], (err, row) => {
+    if (err || !row) return res.status(404).json({ message: 'Upload not found.' });
+    const filePath = path.join(__dirname, 'uploads', row.filePath);
+    fs.unlink(filePath, (err) => {
+      // Ignore file not found error, continue to delete DB entry
+      db.run('DELETE FROM uploads WHERE id = ?', [uploadId], function (err) {
+        if (err) return res.status(500).json({ message: 'Failed to delete upload.' });
+        res.json({ message: 'Upload deleted.' });
+      });
+    });
+  });
+});
+
+// User: Delete an upload by fileName and user_email
+app.delete('/api/user/uploads/:fileName', (req, res) => {
+  const fileName = req.params.fileName;
+  const userEmail = req.query.email;
+  if (!userEmail) return res.status(400).json({ message: 'User email required.' });
+  db.get('SELECT filePath FROM uploads WHERE fileName = ? AND user_email = ?', [fileName, userEmail], (err, row) => {
+    if (err || !row) return res.status(404).json({ message: 'Upload not found.' });
+    const filePath = path.join(__dirname, 'uploads', row.filePath);
+    fs.unlink(filePath, (err) => {
+      // Ignore file not found error, continue to delete DB entry
+      db.run('DELETE FROM uploads WHERE fileName = ? AND user_email = ?', [fileName, userEmail], function (err) {
+        if (err) return res.status(500).json({ message: 'Failed to delete upload.' });
+        res.json({ message: 'Upload deleted.' });
+      });
+    });
+  });
+});
+
+// Download endpoint to serve files with correct headers
+app.get('/api/download/:filePath', (req, res) => {
+  const filePath = req.params.filePath;
+  const fullPath = path.join(__dirname, 'uploads', filePath);
+  if (!fs.existsSync(fullPath)) {
+    return res.status(404).send('File not found');
+  }
+  db.get('SELECT fileName FROM uploads WHERE filePath = ?', [filePath], (err, row) => {
+    let downloadName = filePath;
+    if (!err && row && row.fileName) {
+      downloadName = row.fileName;
+      // If the filename has no extension, try to add it based on the fileType
+      if (!/\.[a-zA-Z0-9]+$/.test(downloadName)) {
+        const ext = path.extname(fullPath);
+        if (ext) downloadName += ext;
+      }
+    }
+    res.download(fullPath, downloadName);
+  });
+});
+
 // Fetch all users
 app.get('/api/users', (req, res) => {
   db.all('SELECT id, name, email, role FROM users', [], (err, rows) => {
@@ -153,14 +211,23 @@ app.get('/api/users', (req, res) => {
   });
 });
 
-// Fetch all uploads
+// Fetch all uploads (with user name and fileUrl)
 app.get('/api/uploads', (req, res) => {
-  db.all('SELECT * FROM uploads', [], (err, rows) => {
-    if (err) {
-      return res.status(500).json({ message: 'Failed to fetch uploads.' });
+  db.all(
+    `SELECT uploads.*, users.name as userName FROM uploads LEFT JOIN users ON uploads.user_email = users.email`,
+    [],
+    (err, rows) => {
+      if (err) {
+        return res.status(500).json({ message: 'Failed to fetch uploads.' });
+      }
+      // Add fileUrl to each upload
+      const uploads = rows.map(row => ({
+        ...row,
+        fileUrl: row.filePath ? `/uploads/${row.filePath}` : ''
+      }));
+      res.json(uploads);
     }
-    res.json(rows);
-  });
+  );
 });
 
 // app.use('/api/auth', authRoutes); // Deprecated, removed

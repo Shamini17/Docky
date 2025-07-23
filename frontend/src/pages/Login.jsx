@@ -30,13 +30,16 @@ function Login({ role }) {
           window.location.href = '/admin';
         } else {
           console.log('Redirecting to /dashboard after login');
-          navigate('/dashboard');
+          window.location.href = '/dashboard';
         }
       } else {
         setError('Login failed. No user data returned.');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed.');
+      if (role !== 'admin') {
+        setTimeout(() => navigate('/signup'), 1500);
+      }
     } finally {
       setLoading(false);
     }
@@ -111,6 +114,11 @@ function Login({ role }) {
           </button>
         </form>
         {error && <p className="text-red-600 text-center font-medium">{error}</p>}
+        {role !== 'admin' && (
+          <p className="text-center text-sm mt-2 text-blue-700">
+            New user? <a href="/signup" className="underline hover:text-blue-900">Sign up here</a>
+          </p>
+        )}
       </div>
     </div>
   );

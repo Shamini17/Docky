@@ -24,7 +24,6 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   useEffect(() => {
-    console.log('AuthContext user:', user);
   }, [user]);
 
   const login = (jwt, userObj) => {

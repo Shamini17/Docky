@@ -11,7 +11,6 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 
 function ProtectedRoute({ children, role }) {
   const { user, loading } = useAuth();
-  console.log('ProtectedRoute user:', user, 'required role:', role);
   if (loading) return <div className="text-center py-8">Loading...</div>;
   if (!user) return <Navigate to="/" />;
   if (role && user.role !== role) return <Navigate to="/" />;

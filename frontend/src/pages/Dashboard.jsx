@@ -18,8 +18,6 @@ export default function Dashboard() {
   let user = null;
   try {
     user = JSON.parse(localStorage.getItem('user') || 'null');
-    // Debug log
-    console.log('Dashboard user from localStorage:', user);
   } catch (e) {
     user = null;
   }
@@ -27,7 +25,6 @@ export default function Dashboard() {
   // Auto-redirect from /user to /dashboard
   useEffect(() => {
     if (location.pathname === '/user') {
-      console.log('Redirecting from /user to /dashboard');
       navigate('/dashboard', { replace: true });
     }
   }, [location, navigate]);
@@ -90,6 +87,21 @@ export default function Dashboard() {
   // Deadline logic
   const isDeadlinePassed = deadline && new Date() > new Date(deadline);
 
+  // Add a delete handler for user uploads
+  const handleDelete = async (upload) => {
+    if (!window.confirm('Are you sure you want to delete this file?')) return;
+    setLoading(true);
+    try {
+      await axios.delete(`/api/user/uploads/${upload.fileName}`, { params: { email: user.email } });
+      setToast({ message: 'File deleted.', type: 'success' });
+      fetchUploads();
+    } catch (err) {
+      setToast({ message: 'Delete failed.', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Filtered uploads are handled in SubmittedFilesList
 
   return (
@@ -114,7 +126,7 @@ export default function Dashboard() {
         {activeTab === 'files' ? (
           <>
             <FiltersBar onFilterChange={setFilters} />
-            <SubmittedFilesList uploads={uploads} filters={filters} />
+            <SubmittedFilesList uploads={uploads} filters={filters} onDelete={handleDelete} />
           </>
         ) : (
           <DocumentSubmissionForm

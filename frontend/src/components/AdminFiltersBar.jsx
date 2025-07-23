@@ -4,12 +4,11 @@ const DOC_TYPES = [ '', 'image', 'audio', 'video', 'doc', 'txt', 'ppt' ];
 
 export default function AdminFiltersBar({ onFilterChange }) {
   const [docType, setDocType] = useState('');
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
   const [search, setSearch] = useState('');
+  const [sortOrder, setSortOrder] = useState('latest');
 
-  const handleChange = () => {
-    onFilterChange({ docType, from, to, search });
+  const handleChange = (newSortOrder = sortOrder) => {
+    onFilterChange({ docType, search, sortOrder: newSortOrder });
   };
 
   return (
@@ -23,7 +22,10 @@ export default function AdminFiltersBar({ onFilterChange }) {
       />
       <select
         value={docType}
-        onChange={e => { setDocType(e.target.value); handleChange(); }}
+        onChange={e => {
+          setDocType(e.target.value);
+          onFilterChange({ docType: e.target.value, search, sortOrder });
+        }}
         className="px-3 py-2 rounded border border-gray-300 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-400 text-sm"
       >
         <option value="">All Types</option>
@@ -31,20 +33,17 @@ export default function AdminFiltersBar({ onFilterChange }) {
           <option key={type} value={type}>{type.toUpperCase()}</option>
         ))}
       </select>
-      <input
-        type="date"
-        value={from}
-        onChange={e => { setFrom(e.target.value); handleChange(); }}
+      <select
+        value={sortOrder}
+        onChange={e => {
+          setSortOrder(e.target.value);
+          handleChange(e.target.value);
+        }}
         className="px-3 py-2 rounded border border-gray-300 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-400 text-sm"
-        placeholder="From"
-      />
-      <input
-        type="date"
-        value={to}
-        onChange={e => { setTo(e.target.value); handleChange(); }}
-        className="px-3 py-2 rounded border border-gray-300 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-400 text-sm"
-        placeholder="To"
-      />
+      >
+        <option value="latest">Latest</option>
+        <option value="oldest">Oldest</option>
+      </select>
     </div>
   );
 } 
