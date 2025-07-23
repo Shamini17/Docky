@@ -75,9 +75,11 @@ app.post('/api/auth/signup/:role', async (req, res) => {
 app.post('/api/auth/login/:role', (req, res) => {
   const { email, password } = req.body;
   const role = req.params.role;
+  console.log('LOGIN ATTEMPT:', { email, role });
   if (role === 'admin') {
     // Only allow default admin
     if (email !== 'nuvai@gmail.com') {
+      console.log('ADMIN LOGIN: Invalid email');
       return res.status(401).json({ message: 'Invalid admin credentials.' });
     }
   }
@@ -85,8 +87,17 @@ app.post('/api/auth/login/:role', (req, res) => {
     'SELECT * FROM users WHERE email = ? AND role = ?',
     [email, role],
     async (err, user) => {
-      if (err || !user) return res.status(401).json({ message: 'Login failed.' });
+      if (err) {
+        console.log('DB ERROR:', err);
+        return res.status(401).json({ message: 'Login failed.' });
+      }
+      if (!user) {
+        console.log('USER NOT FOUND');
+        return res.status(401).json({ message: 'Login failed.' });
+      }
+      console.log('USER FOUND:', user);
       const isMatch = await bcrypt.compare(password, user.password);
+      console.log('PASSWORD MATCH:', isMatch);
       if (!isMatch) return res.status(401).json({ message: 'Login failed.' });
       // Remove password before sending user object
       const { password: _pw, ...safeUser } = user;
