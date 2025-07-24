@@ -41,20 +41,31 @@ db.run(`
 app.post('/api/auth/signup/:role', async (req, res) => {
   const { name, email, password } = req.body;
   const role = req.params.role;
-  if (!['user', 'admin'].includes(role)) return res.status(400).json({ message: 'Invalid role.' });
+  console.log('SIGNUP ATTEMPT:', { name, email, role });
+  if (!['user', 'admin'].includes(role)) {
+    console.log('Invalid role:', role);
+    return res.status(400).json({ message: 'Invalid role.' });
+  }
   if (role === 'admin') {
-    // Only allow default admin
     if (email !== 'nuvai@gmail.com' || password !== 'Nuvai@123') {
+      console.log('Admin signup blocked for non-default admin');
       return res.status(403).json({ message: 'Only the default admin can be created.' });
     }
     db.get('SELECT * FROM users WHERE role = ?', ['admin'], (err, admin) => {
-      if (admin) return res.status(403).json({ message: 'Admin already exists.' });
+      if (admin) {
+        console.log('Admin already exists');
+        return res.status(403).json({ message: 'Admin already exists.' });
+      }
       const passwordHash = bcrypt.hashSync(password, 10);
       db.run(
         'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
         [name, email, passwordHash, role],
         function (err) {
-          if (err) return res.status(409).json({ message: 'Email already in use.' });
+          if (err) {
+            console.log('DB ERROR (admin signup):', err);
+            return res.status(409).json({ message: 'Email already in use.' });
+          }
+          console.log('Admin user created:', { name, email });
           res.json({ message: 'Signup successful.' });
         }
       );
@@ -65,7 +76,11 @@ app.post('/api/auth/signup/:role', async (req, res) => {
       'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
       [name, email, passwordHash, role],
       function (err) {
-        if (err) return res.status(409).json({ message: 'Email already in use.' });
+        if (err) {
+          console.log('DB ERROR (user signup):', err);
+          return res.status(409).json({ message: 'Email already in use.' });
+        }
+        console.log('User created:', { name, email, role });
         res.json({ message: 'Signup successful.' });
       }
     );
