@@ -1,6 +1,33 @@
 export default function SubmissionsTable({ submissions, filters, onDelete }) {
   let filtered = submissions.filter(s => {
-    const matchesType = !filters.docType || (s.docType && s.docType === filters.docType);
+    // Map docType to MIME types/extensions
+    const typeMap = {
+      image: [
+        'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/jpg',
+        '.jpeg', '.jpg', '.png', '.webp', '.gif'
+      ],
+      audio: [
+        'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', '.mp3', '.wav', '.ogg'
+      ],
+      video: [
+        'video/mp4', 'video/webm', 'video/ogg', '.mp4', '.webm', '.ogg'
+      ],
+      doc: [
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/msword', '.docx', '.doc'
+      ],
+      ppt: [
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'application/vnd.ms-powerpoint', '.pptx', '.ppt'
+      ],
+      txt: [
+        'text/plain', '.txt'
+      ]
+    };
+    const matchesType = !filters.docType || (
+      s.fileType && typeMap[filters.docType] && typeMap[filters.docType].some(type => s.fileType === type)
+      || (s.fileName && typeMap[filters.docType] && typeMap[filters.docType].some(ext => s.fileName.toLowerCase().endsWith(ext)))
+    );
     const matchesSearch = !filters.search || (s.fileName && s.fileName.toLowerCase().includes(filters.search.toLowerCase())) || (s.userName && s.userName.toLowerCase().includes(filters.search.toLowerCase()));
     return matchesType && matchesSearch;
   });
