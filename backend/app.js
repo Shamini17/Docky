@@ -333,15 +333,21 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
-// Serve static files from the React app
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
-
 // API 404 handler (should be after all API routes)
 app.use('/api', (req, res) => {
   res.status(404).json({ message: 'API route not found' });
-});
-
-// SPA Fallback: Only for GET requests not starting with /api or /uploads
-app.get(/^\/(?!api|uploads).*/, (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
 }); 
+
+// Ensure only one admin user exists with default credentials on server start
+(async () => {
+  const bcrypt = require('bcryptjs');
+  const email = 'nuvai@gmail.com';
+  const password = 'Nuvai@123';
+  const name = 'Admin';
+  const role = 'admin';
+  const hash = await bcrypt.hash(password, 10);
+  db.run('DELETE FROM users WHERE email = ? AND role = ?', [email, role], function (err) {
+    // Ignore error if no such user
+    db.run('INSERT OR IGNORE INTO users (name, email, password, role) VALUES (?, ?, ?, ?)', [name, email, hash, role]);
+  });
+})(); 
