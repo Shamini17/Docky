@@ -84,7 +84,12 @@ export default function SubmissionsTable({ submissions, filters, onDelete }) {
                 <td className="py-2 px-4 text-black">{getTypeLabel(s.fileType, s.fileName)}</td>
                 <td className="py-2 px-4 text-black">{new Date(s.uploadedAt).toLocaleString()}</td>
                 <td className="py-2 px-4">
-                  <a href={`/api/download/${s.fileUrl.split('/').pop()}`} className="text-green-600 hover:underline">Download</a>
+                  <a
+                    href={`${import.meta.env.VITE_API_URL}/api/download/${s.fileUrl.split('/').pop()}`}
+                    className="text-green-600 hover:underline"
+                  >
+                    Download
+                  </a>
                 </td>
                 <td className="py-2 px-4">
                   {onDelete && (
