@@ -22,7 +22,11 @@ function Login({ role }) {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login/${role}`, form);
+      // Debug: Log the request URL and payload
+      console.log('LOGIN REQUEST URL:', `${import.meta.env.VITE_API_URL}/api/auth/login/${role}`);
+      console.log('LOGIN REQUEST PAYLOAD:', { email: form.email, password: form.password });
+      // Only send email and password in the request body
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login/${role}`, { email: form.email, password: form.password });
       if (res.data && res.data.user) {
         login(res.data.token || '', res.data.user);
         localStorage.setItem('role', role);
