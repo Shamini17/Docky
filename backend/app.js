@@ -306,6 +306,11 @@ app.listen(PORT, () => {
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
+// API 404 handler (should be after all API routes)
+app.use('/api', (req, res) => {
+  res.status(404).json({ message: 'API route not found' });
+});
+
 // SPA Fallback: Only for GET requests not starting with /api or /uploads
 app.get(/^\/(?!api|uploads).*/, (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
