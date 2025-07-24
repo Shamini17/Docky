@@ -144,6 +144,25 @@ app.post('/api/admin/ensure', async (req, res) => {
   });
 });
 
+// DELETE and recreate admin user endpoint
+app.post('/api/admin/reset-admin', async (req, res) => {
+  const bcrypt = require('bcryptjs');
+  const email = 'nuvai@gmail.com';
+  const password = 'Nuvai@123';
+  const name = 'Admin';
+  const role = 'admin';
+  const hash = await bcrypt.hash(password, 10);
+  // Delete all admin users with this email
+  db.run('DELETE FROM users WHERE email = ? AND role = ?', [email, role], function (err) {
+    if (err) return res.status(500).json({ message: 'Failed to delete admin user.' });
+    // Recreate admin user
+    db.run('INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)', [name, email, hash, role], function (err2) {
+      if (err2) return res.status(500).json({ message: 'Failed to create admin user.' });
+      res.json({ message: 'Admin user deleted and recreated with default credentials.' });
+    });
+  });
+});
+
 // --- SQLite: Create uploads table if not exists ---
 db.run(`
   CREATE TABLE IF NOT EXISTS uploads (
