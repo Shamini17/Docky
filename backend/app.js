@@ -175,11 +175,21 @@ db.run(`
   )
 `);
 
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('Created uploads directory:', uploadsDir);
+}
+
 // --- File Upload Endpoint ---
 app.post('/api/user/upload', upload.single('file'), (req, res) => {
-  // For demo, get user email from body (in production, use auth)
-  const userEmail = req.body.email || 'abc@gmail.com'; // fallback for demo
-  if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
+  const userEmail = req.body.email || 'abc@gmail.com';
+  console.log('UPLOAD ATTEMPT:', { userEmail, file: req.file });
+  if (!req.file) {
+    console.log('No file uploaded');
+    return res.status(400).json({ message: 'No file uploaded.' });
+  }
   const fileName = req.file.originalname;
   const filePath = req.file.filename;
   const fileType = req.file.mimetype;
@@ -188,7 +198,11 @@ app.post('/api/user/upload', upload.single('file'), (req, res) => {
     'INSERT INTO uploads (user_email, fileName, filePath, fileType, uploadedAt) VALUES (?, ?, ?, ?, ?)',
     [userEmail, fileName, filePath, fileType, uploadedAt],
     function (err) {
-      if (err) return res.status(500).json({ message: 'Failed to save upload.' });
+      if (err) {
+        console.log('DB ERROR (upload):', err);
+        return res.status(500).json({ message: 'Failed to save upload.' });
+      }
+      console.log('Upload saved to DB:', { userEmail, fileName, filePath, fileType, uploadedAt });
       res.json({ message: 'Upload successful.' });
     }
   );
@@ -252,7 +266,9 @@ app.delete('/api/user/uploads/:fileName', (req, res) => {
 app.get('/api/download/:filePath', (req, res) => {
   const filePath = req.params.filePath;
   const fullPath = path.join(__dirname, 'uploads', filePath);
+  console.log('DOWNLOAD ATTEMPT:', { filePath, fullPath });
   if (!fs.existsSync(fullPath)) {
+    console.log('File not found:', fullPath);
     return res.status(404).send('File not found');
   }
   db.get('SELECT fileName FROM uploads WHERE filePath = ?', [filePath], (err, row) => {
@@ -265,6 +281,7 @@ app.get('/api/download/:filePath', (req, res) => {
         if (ext) downloadName += ext;
       }
     }
+    console.log('Sending file:', { fullPath, downloadName });
     res.download(fullPath, downloadName);
   });
 });
