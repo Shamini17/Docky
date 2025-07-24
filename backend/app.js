@@ -287,6 +287,17 @@ app.get('/api/debug/users', (req, res) => {
   });
 });
 
+// Debug: List all uploads
+app.get('/api/debug/uploads', (req, res) => {
+  db.all('SELECT * FROM uploads', [], (err, rows) => {
+    if (err) return res.status(500).json({ message: 'Failed to fetch uploads.' });
+    res.json(rows);
+  });
+});
+
+// Health check endpoint
+app.get('/healthz', (req, res) => res.send('OK'));
+
 // app.use('/api/auth', authRoutes); // Deprecated, removed
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // app.use('/api/documents', documentRoutes);
@@ -302,8 +313,6 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
-app.get('/healthz', (req, res) => res.send('OK'));
 
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
